@@ -8,7 +8,7 @@ client.authenticate({interactive: false}, function (error) {
     }
 });
 
-alert('hoge');
+alert(client.isAuthenticated());
 if (client.isAuthenticated()) {
     $('#auth').text('auth...');
     alert('auth...');
