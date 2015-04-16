@@ -61,14 +61,15 @@ $(function() {
             //          v.deleteRecord();
             //        });
 
-            $('#div_food').html('')
-            $('#div_food').append('<ul>')
             records = table.query();
             $.each(records,
                    function(i, v) {
-                     $('#div_food ul').append('<li>' + v.get('vendor') + '</li>');
+                     $('#select_food').append(
+                       '<option value=' + v.getId() + '>' +
+                         v.get('vendor') + ' ' + v.get('name') +
+                         '</option>'
+                     );
                    });
-            $('#div_food').append('</ul>')
           } catch (e) {
             alert(e);
           }
@@ -109,7 +110,7 @@ $(function() {
     }
   }
 
-  $('#food_submit').click(function(e) {
+  $('#food_add_submit').click(function(e) {
     if (($('#food_name').val() != "") &&
         ($('#food_vendor').val() != "") &&
         ($('#food_energy').val() != "")) {

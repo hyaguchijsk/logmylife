@@ -18,45 +18,60 @@
       </button>
 
       <h2>Food</h2>
-      <div id="div_food">        
+      <h3>What did you eat?</h3>
+      <div>
+        <form id="form_food_eat" class="form-horizontal">
+          <div class="form-group col-sm-6">
+            <select id="select_food" class="form-control">
+            </select>
+          </div>
+          <div class="col-sm-offset-4 col-sm-8">
+            <button id="food_eat_submit" class="btn btn-primary">
+              Registration 登録
+            </button>
+          </div>
+        </form>
       </div>
+      <br /><br />
 
       <h3>Add New Food</h3>
-      <form id="form_food_add" class="form-horizontal">
-        <div class="form-group">
-          <label class="col-sm-4 control-label">Name 名前</label>
-          <input type="text" id="food_name" name="food_name" required />
-        </div>
-        <div class="form-group">
-          <label class="col-sm-4 control-label">Vendor メーカー</label>
-          <input type="text" id="food_vendor" name="food_vendor" required />
-        </div>
-        <div class="form-group">
-          <label class="col-sm-4 control-label">Energy エネルギー [kcal]</label>
-          <input type="text" id="food_energy" name="food_energy" required />
-        </div>
-        <div class="form-group">
-          <label class="col-sm-4 control-label">Protein タンパク質 [g]</label>
-          <input type="text" id="food_protein" name="food_protein" />
-        </div>
-        <div class="form-group">
-          <label class="col-sm-4 control-label">Lipid 脂質 [g]</label>
-          <input type="text" id="food_lipid" name="food_lipid" />
-        </div>
-        <div class="form-group">
-          <label class="col-sm-4 control-label">Carbohydrate 炭水化物 [g]</label>
-          <input type="text" id="food_carbohydrate" name="food_carbohydrate" />
-        </div>
-        <div class="form-group">
-          <label class="col-sm-4 control-label">Sodium ナトリウム [mg]</label>
-          <input type="text" id="food_sodium" name="food_sodium" />
-        </div>
-        <div class="col-sm-offset-4 col-sm-8">
-          <button id="food_submit" class="btn btn-primary">
-            Registration 登録
-          </button>
-        </div>
-      </form>
+      <div>
+        <form id="form_food_add" class="form-horizontal">
+          <div class="form-group">
+            <label class="col-sm-4 control-label">Name 名前</label>
+            <input type="text" id="food_name" name="food_name" required />
+          </div>
+          <div class="form-group">
+            <label class="col-sm-4 control-label">Vendor メーカー</label>
+            <input type="text" id="food_vendor" name="food_vendor" required />
+          </div>
+          <div class="form-group">
+            <label class="col-sm-4 control-label">Energy エネルギー [kcal]</label>
+            <input type="text" id="food_energy" name="food_energy" required />
+          </div>
+          <div class="form-group">
+            <label class="col-sm-4 control-label">Protein タンパク質 [g]</label>
+            <input type="text" id="food_protein" name="food_protein" />
+          </div>
+          <div class="form-group">
+            <label class="col-sm-4 control-label">Lipid 脂質 [g]</label>
+            <input type="text" id="food_lipid" name="food_lipid" />
+          </div>
+          <div class="form-group">
+            <label class="col-sm-4 control-label">Carbohydrate 炭水化物 [g]</label>
+            <input type="text" id="food_carbohydrate" name="food_carbohydrate" />
+          </div>
+          <div class="form-group">
+            <label class="col-sm-4 control-label">Sodium ナトリウム [mg]</label>
+            <input type="text" id="food_sodium" name="food_sodium" />
+          </div>
+          <div class="col-sm-offset-4 col-sm-8">
+            <button id="food_add_submit" class="btn btn-primary">
+              Registration 登録
+            </button>
+          </div>
+        </form>
+      </div>
 
     </div>
 
