@@ -1,4 +1,4 @@
-var client = new Dropbox.Client({key: efvlr1x3fmx1l7v});
+var client = new Dropbox.Client({key: "efvlr1x3fmx1l7v"});
 
 // Try to finish OAuth authorization.
 client.authenticate({interactive: false}, function (error) {
