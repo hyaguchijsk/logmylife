@@ -194,15 +194,28 @@ $(function() {
                            carbohydrate,
                            sodium) {
         if (table_food_db != null) {
-          table_food_db.insert({
-            name: name,
-            vendor: vendor,
-            energy: energy,
-            protein: protein,
-            lipid: lipid,
-            carbohydrate: carbohydrate,
-            sodium: sodium
-          });
+          var que = table_food_db.query({name: name, vendor: vendor});
+          if (que.length > 0) {
+            que[0].update({
+              name: name,
+              vendor: vendor,
+              energy: energy,
+              protein: protein,
+              lipid: lipid,
+              carbohydrate: carbohydrate,
+              sodium: sodium
+            });
+          } else {
+            table_food_db.insert({
+              name: name,
+              vendor: vendor,
+              energy: energy,
+              protein: protein,
+              lipid: lipid,
+              carbohydrate: carbohydrate,
+              sodium: sodium
+            });
+          }
         } else {
           alert('writeTable: Could not open table');
         }
@@ -223,40 +236,110 @@ $(function() {
         }
       });  // #food_add_submit
 
+
       function readEatDB() {
         $('#food_history').text('');
         records = table_eat_db.query();
         var total_energy = 0;
+        var history_date = createHistoryDate();
+        var hyear = history_date.getFullYear();
+        var hmonth = history_date.getMonth();
+        var hday = history_date.getDate();
         $.each(records,
                function(i, v) {
-                 $('#food_history').append('<tr>');
                  var date = v.get('date');
-                 $('#food_history').append(
-                   '<td>' + date + '</td>');
-                 try {
-                   var food_item = table_food_db.get(v.get('food_id'));
+                 if ((hyear == date.getFullYear()) &&
+                     (hmonth == date.getMonth()) &&
+                     (hday == date.getDate())) {
+                   $('#food_history').append('<tr>');
                    $('#food_history').append(
-                     '<td>' + food_item.get('vendor') + '</td>');
-                   $('#food_history').append(
-                     '<td>' + food_item.get('name') + '</td>');
-                   $('#food_history').append(
-                     '<td>' + food_item.get('energy') + '</td>');
-                   $('#food_history').append(
-                     '<td><input type="checkbox" value="' +
-                       v.getId() +
-                       '" name="check_delete"></td>');
-                   total_energy += Number(food_item.get('energy'));
-                   console.log(total_energy);
-                 } catch (e) {
-                   $('#food_history').append('<td>not found</td>');
+                     '<td>' + date + '</td>');
+                   try {
+                     var food_item = table_food_db.get(v.get('food_id'));
+                     $('#food_history').append(
+                       '<td>' + food_item.get('vendor') + '</td>');
+                     $('#food_history').append(
+                       '<td>' + food_item.get('name') + '</td>');
+                     $('#food_history').append(
+                       '<td>' + food_item.get('energy') + '</td>');
+                     $('#food_history').append(
+                       '<td><input type="checkbox" value="' +
+                         v.getId() +
+                         '" name="check_delete"></td>');
+                     total_energy += Number(food_item.get('energy'));
+                   } catch (e) {
+                     $('#food_history').append('<td>not found</td>');
+                   }
+                   $('#food_history').append('</tr>');
                  }
-                 $('#food_history').append('</tr>');
                });
-        console.log(total_energy);
         $('#total_energy').text(String(total_energy));
       }  // readEatDB
       datastore.recordsChanged.addListener(readEatDB);
-      readEatDB();
+
+      // for history selector
+      function updateHistoryTimeSelector(year, month, day) {
+        // year
+        $('#history_year').text('');
+        for (var i = 0; i >= -1; i--) {
+          vyear = year_now + i;
+          if (vyear == year) {
+            $('#history_year').append(
+              '<option value="' + vyear + '" selected>' + vyear + '</option>');
+          } else {
+            $('#history_year').append(
+              '<option value="' + vyear + '">' + vyear + '</option>');
+          }
+        }
+
+        // month
+        $('#history_month').text('');
+        for (var i = 0; i < 12; i++) {
+          if (i == month) {
+            $('#history_month').append(
+              '<option value="' + (i + 1) + '" selected>' + (i + 1) + '</option>');
+          } else {
+            $('#history_month').append(
+              '<option value="' + (i + 1) + '">' + (i + 1) + '</option>');
+          }
+        }
+
+        // day should be checked
+        var day_range_month = new Date(year, (month + 1), 0).getDate();
+        $('#history_day').text('');
+        for (var i = 1; i <= day_range_month; i++) {
+          if (i == day) {
+            $('#history_day').append(
+              '<option value="' + i + '" selected>' + i + '</option>');
+          } else {
+            $('#history_day').append(
+              '<option value="' + i + '">' + i + '</option>');
+          }
+        }
+      }
+      function createHistoryDate() {
+        var year = Number($('#history_year option:selected').val());
+        var month = Number($('#history_month option:selected').val()) - 1;
+        var day = Number($('#history_day option:selected').val());
+
+        var day_range_month = new Date(year, (month + 1), 0).getDate();
+        var vday = day;
+        if (day > day_range_month) {
+          vday = day_range_month;
+        }
+        return new Date(year, month, vday, 0, 0, 0);
+      }
+      function historyDateChangeCallback() {
+        var date = createHistoryDate();
+        updateHistoryTimeSelector(date.getFullYear(),
+                                  date.getMonth(),
+                                  date.getDate());
+        readEatDB();
+      }
+      $('#history_year').change(historyDateChangeCallback);
+      $('#history_month').change(historyDateChangeCallback);
+      $('#history_day').change(historyDateChangeCallback);
+      updateHistoryTimeSelector(year_now, month_now, day_now);
 
       function writeEatDB(date, food_id) {
         if (table_eat_db != null) {
