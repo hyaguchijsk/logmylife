@@ -19,75 +19,76 @@
 
       <h2>Food</h2>
       <h3>What did you eat?</h3>
-      <div>
-        <form id="form_food_eat" class="form-horizontal">
-          <div class="form-group">
-            <select id="select_food" class="form-control">
+      <form id="form_food_eat" class="form-horizontal">
+        <div class="form-group">
+          <select id="select_food" class="form-control">
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="radio-inline">
+            <input type="radio"
+                   name="radio_time"
+                   id="radio_now"
+                   value="time_now"
+                   checked="checked"/>
+            Now
+          </label>
+          <label class="radio-inline">
+            <input type="radio"
+                   name="radio_time"
+                   id="radio_set"
+                   value="time_set"/>
+            Set time as
+          </label>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-4">
+            <select id="select_year" class="form-control">
             </select>
           </div>
-          <div class="form-group">
-            <label class="radio-inline">
-              <input type="radio"
-                     name="radio_time"
-                     id="radio_now"
-                     value="time_now"
-                     checked="checked"/>
-              Now
-            </label>
-            <label class="radio-inline">
-              <input type="radio"
-                     name="radio_time"
-                     id="radio_set"
-                     value="time_set"/>
-              Set time as
-            </label>
+          <div class="col-sm-2">
+            <select id="select_month" class="form-control">
+            </select>
           </div>
-          <div class="form-group">
-            <div class="col-sm-2">
-              <select id="select_year" class="form-control">
-              </select>
-            </div>
-            <div class="col-sm-1">
-              <select id="select_month" class="form-control">
-              </select>
-            </div>
-            <div class="col-sm-1">
-              <select id="select_day" class="form-control">
-              </select>
-            </div>
-            <div class="col-sm-1">
-              <select id="select_hour" class="form-control">
-              </select>
-            </div>
-            <div class="col-sm-1">
-              <select id="select_minute" class="form-control">
-              </select>
-            </div>
+          <div class="col-sm-2">
+            <select id="select_day" class="form-control">
+            </select>
           </div>
-          <div class="col-sm-offset-4 col-sm-8">
-            <button id="food_eat_submit" class="btn btn-primary">
-              Registration 登録
-            </button>
+          <div class="col-sm-2">
+            <select id="select_hour" class="form-control">
+            </select>
           </div>
-        </form>
-      </div>
+          <div class="col-sm-2">
+            <select id="select_minute" class="form-control">
+            </select>
+          </div>
+        </div>
+        <div class="col-sm-offset-4 col-sm-8">
+          <button id="food_eat_submit" class="btn btn-primary">
+            Registration 登録
+          </button>
+        </div>
+      </form>
       <br /><br />
 
       <h3>History</h3>
-      <div class="form-group">
-        <div class="col-sm-2">
-          <select id="history_year" class="form-control">
-          </select>
+      <form id="form_food_history" class="form-horizontal">
+        <div class="form-group">
+          <div class="col-sm-4">
+            <select id="history_year" class="form-control">
+            </select>
+          </div>
+          <div class="col-sm-2">
+            <select id="history_month" class="form-control">
+            </select>
+          </div>
+          <div class="col-sm-2">
+            <select id="history_day" class="form-control">
+            </select>
+          </div>
         </div>
-        <div class="col-sm-1">
-          <select id="history_month" class="form-control">
-          </select>
-        </div>
-        <div class="col-sm-1">
-          <select id="history_day" class="form-control">
-          </select>
-        </div>
-      </div>
+      </form>
+      <br /><br />
 
       <div>
         <table class="table">
@@ -115,6 +116,7 @@
           </button>
         </div>
       </div>
+      <br /><br />
 
       <h3>Add New Food</h3>
       <div>
@@ -154,6 +156,7 @@
           </div>
         </form>
       </div>
+      <br /><br />
 
       <h3>How to USE? (Food Section)</h3>
       <p>
@@ -172,6 +175,26 @@
       <p>
         You can show food history what did you eat in a day.
         Also you can travel your history via pull down menu.
+      </p>
+
+      <p>
+        まず，食べ物の情報を"Add New Food"から登録してください．
+        "Vendor", "Name", "Energy"は必須項目です．
+        "Registration"で登録できます．
+        登録した食べ物は"What did you eat?"から選択できます．
+        "Vendor"と"Name"が登録されているものと同じ場合，
+        "Registration"は情報の更新を行います．
+      </p>
+      <p>
+        "What did you eat?"から食べ物を選択し，時間を選びます．
+        もし今であれば"Now"にチェックを入れてください．
+        時間を指定したい場合は"Set time as"にチェックを入れて
+        その下のプルダウンメニューから日時を選び，
+        "Registration"で登録を行なってください．
+      </p>
+      <p>
+        一日の食事の履歴を見ることができます．
+        またプルダウンメニューから日付を選択し過去の履歴を見ることができます．
       </p>
     </div>
 
