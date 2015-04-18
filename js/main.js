@@ -340,6 +340,7 @@ $(function() {
       $('#history_month').change(historyDateChangeCallback);
       $('#history_day').change(historyDateChangeCallback);
       updateHistoryTimeSelector(year_now, month_now, day_now);
+      readEatDB();
 
       function writeEatDB(date, food_id) {
         if (table_eat_db != null) {
