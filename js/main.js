@@ -148,6 +148,7 @@ $(function() {
     var datastore = null;
     var table_food_db = null;
     var table_eat_db = null;
+    var vendor_food_hash = new Object();  // hash table for vendor : [food]
     dsmanager.openDefaultDatastore(function(error, ds) {
       if (error) {
         alert('Error opening default datastore: ' + error);
@@ -169,20 +170,48 @@ $(function() {
           //          v.deleteRecord();
           //        });
 
+          vendor_food_hash = new Object();
+
           records = table_food_db.query();
           $('#select_food').text('');
+          $('#select_vendor').text('');
           $.each(records,
                  function(i, v) {
-                   $('#select_food').append(
-                     '<option value=' + v.getId() + '>' +
-                       v.get('vendor') + ' ' + v.get('name') +
-                       '</option>'
-                   );
+                   if (vendor_food_hash[v.get('vendor')]) {
+                     vendor_food_hash[v.get('vendor')].push(v);
+                   } else {
+                     vendor_food_hash[v.get('vendor')] = [v];
+                   }
                  });
+          for (key in vendor_food_hash) {
+            $('#select_vendor').append(
+              '<option value=' + key + '>' + key + '</option>'
+            );
+          }
+          if (Object.keys(vendor_food_hash).length >= 0) {
+            setFoodByVendor(Object.keys(vendor_food_hash)[0]);
+          }
         } else {
           alert('readTable: Could not open table');
         }
       }
+      function setFoodByVendor(key) {
+        $('#select_food').text('');
+        $.each(vendor_food_hash[key],
+               function(i, v) {
+                 $('#select_food').append(
+                   '<option value=' + v.getId() + '>' +
+                     v.get('name') +
+                     '</option>'
+                 );
+               });
+      }
+      // if vendor selection changed, update food selector
+      function vendorChangeCallback() {
+        setFoodByVendor(
+          $('#select_vendor option:selected').text());
+      }
+      $('#select_vendor').change(vendorChangeCallback);
       datastore.recordsChanged.addListener(readFoodDB);
       readFoodDB();
 
