@@ -104,7 +104,7 @@ $(function() {
 
   var client = new Dropbox.Client({key: 'efvlr1x3fmx1l7v'});
   // Try to finish OAuth authorization.
-  client.authenticate({interactive: false}, authCallback);
+  client.authenticate(authCallback);
 
   // login action
   $("#btn_login").click(function (event) {
@@ -143,44 +143,26 @@ $(function() {
       return;
     }
 
-    // open datastores
-    var dsmanager = client.getDatastoreManager();
-    var datastore = null;
-    var table_food_db = null;
-    var table_eat_db = null;
-    var vendor_food_hash = new Object();  // hash table for vendor : [food]
-    dsmanager.openDefaultDatastore(function(error, ds) {
+    // open files
+    client.readFile('food_db.json', function (error, data) {
       if (error) {
-        alert('Error opening default datastore: ' + error);
+        alert('Error opening food_db.json: ' + error);
       }
-      datastore = ds;
-      try {
-        table_food_db = datastore.getTable('food_db');
-        table_eat_db = datastore.getTable('what_did_you_eat');
-      } catch (e) {
-        alert(e);
-      }
+      var food_db = $.parseJSON(data);
+      var vendor_food_hash = new Object();  // hash table for vendor : [food]
 
       function readFoodDB() {
-        if (table_food_db !== null) {
-          // delete no named items
-          // records = table_food_db.query({name: ""});
-          // $.each(records,
-          //        function(i, v) {
-          //          v.deleteRecord();
-          //        });
-
+        if (food_db !== null) {
           vendor_food_hash = new Object();
 
-          records = table_food_db.query();
           $('#select_food').text('');
           $('#select_vendor').text('');
-          $.each(records,
+          $.each(food_db,
                  function(i, v) {
-                   if (vendor_food_hash[v.get('vendor')]) {
-                     vendor_food_hash[v.get('vendor')].push(v);
+                   if (vendor_food_hash[v.vendor]) {
+                     vendor_food_hash[v.vendor].push(v);
                    } else {
-                     vendor_food_hash[v.get('vendor')] = [v];
+                     vendor_food_hash[v.vendor] = [v];
                    }
                  });
           for (key in vendor_food_hash) {
@@ -200,10 +182,10 @@ $(function() {
         $.each(vendor_food_hash[key],
                function(i, v) {
                  $('#select_food').append(
-                   '<option value=' + v.getId() + '>' +
-                     v.get('name') +
+                   '<option value=' + v.id + '>' +
+                     v.name +
                      '</option>'
-                 );
+               );
                });
       }
       // if vendor selection changed, update food selector
@@ -212,7 +194,7 @@ $(function() {
           $('#select_vendor option:selected').text());
       }
       $('#select_vendor').change(vendorChangeCallback);
-      datastore.recordsChanged.addListener(readFoodDB);
+      // datastore.recordsChanged.addListener(readFoodDB);
       readFoodDB();
 
       function writeFoodDB(name,
@@ -222,29 +204,24 @@ $(function() {
                            lipid,
                            carbohydrate,
                            sodium) {
-        if (table_food_db != null) {
-          var que = table_food_db.query({name: name, vendor: vendor});
-          if (que.length > 0) {
-            que[0].update({
-              name: name,
-              vendor: vendor,
-              energy: energy,
-              protein: protein,
-              lipid: lipid,
-              carbohydrate: carbohydrate,
-              sodium: sodium
-            });
-          } else {
-            table_food_db.insert({
-              name: name,
-              vendor: vendor,
-              energy: energy,
-              protein: protein,
-              lipid: lipid,
-              carbohydrate: carbohydrate,
-              sodium: sodium
-            });
-          }
+        if (food_db != null) {
+          food_db.push({
+            'id' : String(new Date().getTime()),
+            'name' : name,
+            'vendor' : vendor,
+            'energy' : energy,
+            'protein' : protein,
+            'lipid' : lipid,
+            'carbohydrate' : carbohydrate,
+            'sodium': sodium
+          });
+          client.writeFile('food_db.json', JSON.stringify(food_db, null, 2),
+                           function(error, stat) {
+                             if (error) {
+                               alert('Error writing food_db.json: ' + error);
+                             }
+                           });
+          readFoodDB();
         } else {
           alert('writeTable: Could not open table');
         }
@@ -266,143 +243,184 @@ $(function() {
       });  // #food_add_submit
 
 
-      function readEatDB() {
-        $('#food_history').text('');
-        records = table_eat_db.query();
-        var total_energy = 0;
-        var history_date = createHistoryDate();
-        var hyear = history_date.getFullYear();
-        var hmonth = history_date.getMonth();
-        var hday = history_date.getDate();
-        $.each(records,
-               function(i, v) {
-                 var date = v.get('date');
-                 if ((hyear == date.getFullYear()) &&
-                     (hmonth == date.getMonth()) &&
-                     (hday == date.getDate())) {
-                   $('#food_history').append('<tr>');
-                   $('#food_history').append(
-                     '<td>' + date + '</td>');
-                   try {
-                     var food_item = table_food_db.get(v.get('food_id'));
+      // eat_db
+      var today = new Date();
+      var eat_db_file =
+        'what_did_you_eat_' + today.getFullYear() + '_'
+        + ('00' + (today.getMonth() + 1)).substr(-2) + '.json';
+      client.readFile(eat_db_file, function (error, data) {
+        if (error) {
+          alert('Error opening ' + eat_db_file + ': ' + error);
+        }
+        var eat_db = $.parseJSON(data);
+
+        function readEatDB() {
+          $('#food_history').text('');
+          var total_energy = 0;
+          var history_date = createHistoryDate();
+          var hyear = history_date.getFullYear();
+          var hmonth = history_date.getMonth();
+          var hday = history_date.getDate();
+          $.each(eat_db,
+                 function(i, v) {
+                   var date = new Date(v.date);
+                   if ((hyear == date.getFullYear()) &&
+                       (hmonth == date.getMonth()) &&
+                       (hday == date.getDate())) {
+                     $('#food_history').append('<tr>');
                      $('#food_history').append(
-                       '<td>' + food_item.get('vendor') + '</td>');
-                     $('#food_history').append(
-                       '<td>' + food_item.get('name') + '</td>');
-                     $('#food_history').append(
-                       '<td>' + food_item.get('energy') + '</td>');
-                     $('#food_history').append(
-                       '<td><input type="checkbox" value="' +
-                         v.getId() +
-                         '" name="check_delete"></td>');
-                     total_energy += Number(food_item.get('energy'));
-                   } catch (e) {
-                     $('#food_history').append('<td>not found</td>');
+                       '<td>' + date + '</td>');
+                     var food_item = null;
+                     $.each(food_db, function(j, foodi) {
+                       if (foodi.id == v.food_id) {
+                         food_item = foodi;
+                         return false;
+                       }
+                     });
+                     if (food_item) {
+                       $('#food_history').append(
+                         '<td>' + food_item.vendor + '</td>');
+                       $('#food_history').append(
+                         '<td>' + food_item.name + '</td>');
+                       $('#food_history').append(
+                         '<td>' + food_item.energy + '</td>');
+                       $('#food_history').append(
+                         '<td><input type="checkbox" value="' +
+                           v.id + '" name="check_delete"></td>');
+                       total_energy += Number(food_item.energy);
+                     } else {
+                       $('#food_history').append('<td>not found</td>');
+                     }
+                     $('#food_history').append('</tr>');
                    }
-                   $('#food_history').append('</tr>');
-                 }
-               });
-        $('#total_energy').text(String(total_energy));
-      }  // readEatDB
-      datastore.recordsChanged.addListener(readEatDB);
+                 });
+          $('#total_energy').text(String(total_energy));
+        }  // readEatDB
+        // datastore.recordsChanged.addListener(readEatDB);
 
-      // for history selector
-      function updateHistoryTimeSelector(year, month, day) {
-        // year
-        $('#history_year').text('');
-        for (var i = 0; i >= -1; i--) {
-          vyear = year_now + i;
-          if (vyear == year) {
-            $('#history_year').append(
-              '<option value="' + vyear + '" selected>' + vyear + '</option>');
-          } else {
-            $('#history_year').append(
-              '<option value="' + vyear + '">' + vyear + '</option>');
+        // for history selector
+        function updateHistoryTimeSelector(year, month, day) {
+          // year
+          $('#history_year').text('');
+          for (var i = 0; i >= -1; i--) {
+            vyear = year_now + i;
+            if (vyear == year) {
+              $('#history_year').append(
+                '<option value="' + vyear + '" selected>' + vyear + '</option>');
+            } else {
+              $('#history_year').append(
+                '<option value="' + vyear + '">' + vyear + '</option>');
+            }
+          }
+
+          // month
+          $('#history_month').text('');
+          for (var i = 0; i < 12; i++) {
+            if (i == month) {
+              $('#history_month').append(
+                '<option value="' + (i + 1) + '" selected>' + (i + 1) + '</option>');
+            } else {
+              $('#history_month').append(
+                '<option value="' + (i + 1) + '">' + (i + 1) + '</option>');
+            }
+          }
+
+          // day should be checked
+          var day_range_month = new Date(year, (month + 1), 0).getDate();
+          $('#history_day').text('');
+          for (var i = 1; i <= day_range_month; i++) {
+            if (i == day) {
+              $('#history_day').append(
+                '<option value="' + i + '" selected>' + i + '</option>');
+            } else {
+              $('#history_day').append(
+                '<option value="' + i + '">' + i + '</option>');
+            }
           }
         }
+        function createHistoryDate() {
+          var year = Number($('#history_year option:selected').val());
+          var month = Number($('#history_month option:selected').val()) - 1;
+          var day = Number($('#history_day option:selected').val());
 
-        // month
-        $('#history_month').text('');
-        for (var i = 0; i < 12; i++) {
-          if (i == month) {
-            $('#history_month').append(
-              '<option value="' + (i + 1) + '" selected>' + (i + 1) + '</option>');
-          } else {
-            $('#history_month').append(
-              '<option value="' + (i + 1) + '">' + (i + 1) + '</option>');
+          var day_range_month = new Date(year, (month + 1), 0).getDate();
+          var vday = day;
+          if (day > day_range_month) {
+            vday = day_range_month;
           }
+          return new Date(year, month, vday, 0, 0, 0);
         }
-
-        // day should be checked
-        var day_range_month = new Date(year, (month + 1), 0).getDate();
-        $('#history_day').text('');
-        for (var i = 1; i <= day_range_month; i++) {
-          if (i == day) {
-            $('#history_day').append(
-              '<option value="' + i + '" selected>' + i + '</option>');
-          } else {
-            $('#history_day').append(
-              '<option value="' + i + '">' + i + '</option>');
-          }
+        function historyDateChangeCallback() {
+          var date = createHistoryDate();
+          updateHistoryTimeSelector(date.getFullYear(),
+                                    date.getMonth(),
+                                    date.getDate());
+          readEatDB();
         }
-      }
-      function createHistoryDate() {
-        var year = Number($('#history_year option:selected').val());
-        var month = Number($('#history_month option:selected').val()) - 1;
-        var day = Number($('#history_day option:selected').val());
-
-        var day_range_month = new Date(year, (month + 1), 0).getDate();
-        var vday = day;
-        if (day > day_range_month) {
-          vday = day_range_month;
-        }
-        return new Date(year, month, vday, 0, 0, 0);
-      }
-      function historyDateChangeCallback() {
-        var date = createHistoryDate();
-        updateHistoryTimeSelector(date.getFullYear(),
-                                  date.getMonth(),
-                                  date.getDate());
+        $('#history_year').change(historyDateChangeCallback);
+        $('#history_month').change(historyDateChangeCallback);
+        $('#history_day').change(historyDateChangeCallback);
+        updateHistoryTimeSelector(year_now, month_now, day_now);
         readEatDB();
-      }
-      $('#history_year').change(historyDateChangeCallback);
-      $('#history_month').change(historyDateChangeCallback);
-      $('#history_day').change(historyDateChangeCallback);
-      updateHistoryTimeSelector(year_now, month_now, day_now);
-      readEatDB();
 
-      function writeEatDB(date, food_id) {
-        if (table_eat_db != null) {
-          table_eat_db.insert({
-            date: date,
-            food_id: food_id
-          });
-        } else {
-          alert('writeTable: Could not open table');
-        }
-      }  // writeEatDB
-
-      $('#food_eat_submit').click(function(e) {
-        e.preventDefault();
-        var date;
-        if ($('#radio_now').is(':checked')) {
-          date = new Date();
-        } else {
-          date = createDate();
-        }
-        writeEatDB(date, $('#select_food option:selected').val());
-      });  // food_eat_submit
-
-      $('#food_delete_item').click(function(e) {
-        e.preventDefault();
-        $.each(
-          $('input:checkbox[name="check_delete"]:checked'),
-          function(i, v) {
-            table_eat_db.get($(v).val()).deleteRecord();
+        function writeEatDB(date, food_id) {
+          if (eat_db != null) {
+            eat_db.push({
+              'id' : String(new Date().getTime()),
+              'date' : date.toString(),
+              'food_id' : food_id
+            });
+            client.writeFile(
+              eat_db_file, JSON.stringify(eat_db, null, 2),
+              function(error, stat) {
+                if (error) {
+                  alert('Error writing ' + eat_db_file + ': ' + error);
+                }
+              });
+            readEatDB();
+          } else {
+            alert('writeTable: Could not open table');
           }
-        );
-      });
+        }  // writeEatDB
 
-    });  // openDefaultDatastore
+        $('#food_eat_submit').click(function(e) {
+          e.preventDefault();
+          var date;
+          if ($('#radio_now').is(':checked')) {
+            date = new Date();
+          } else {
+            date = createDate();
+          }
+          writeEatDB(date, $('#select_food option:selected').val());
+        });  // food_eat_submit
+
+        $('#food_delete_item').click(function(e) {
+          e.preventDefault();
+          $.each(
+            $('input:checkbox[name="check_delete"]:checked'),
+            function(i, v) {
+              var did = $(v).val();
+              $.each(eat_db,
+                     function(j, ei) {
+                       if (ei.id == did) {
+                         eat_db.splice(j, 1);
+                         return false;
+                       }
+                     });
+            });
+            client.writeFile(
+              eat_db_file, JSON.stringify(eat_db, null, 2),
+              function(error, stat) {
+                if (error) {
+                  alert('Error writing ' + eat_db_file + ': ' + error);
+                }
+              });
+            readEatDB();
+        });
+
+      });  // readFile(eatdb)
+
+    });  // readfile('food_db.json')
+
   }  // authCallback
 });
