@@ -324,6 +324,7 @@ $(function() {
           function readEatDB() {
             $('#food_history').text('');
             var total_energy = 0;
+            var total_salt = 0;
             var history_date = createHistoryDate();
             var hyear = history_date.getFullYear();
             var hmonth = history_date.getMonth();
@@ -351,6 +352,13 @@ $(function() {
                            '<td>' + food_item.name + '</td>');
                          $('#food_history').append(
                            '<td>' + food_item.energy + '</td>');
+                         var sod = new Number(food_item.sodium);
+                         if (!isNaN(sod)) {
+                           var salt = sod * 2.54 / 1000.0;
+                           $('#food_history').append(
+                             '<td>' + String(salt).substr(0, 5) + '</td>');
+                           total_salt += salt;
+                         }
                          $('#food_history').append(
                            '<td><input type="checkbox" value="' +
                              v.id + '" name="check_delete"></td>');
@@ -362,6 +370,19 @@ $(function() {
                      }
                    });
             $('#total_energy').text(String(total_energy));
+            $('#total_salt').text('');
+            var salt_str = String(total_salt).substr(0, 5);
+            var salt_colored_str;
+            if (total_salt >= 7.0) {
+              salt_colored_str = '<span class="text-danger">' +
+                salt_str + '</span>';
+            } else if (total_salt >= 5.0) {
+              salt_colored_str = '<span class="text-warning">' +
+                salt_str + '</span>';
+            } else {
+              salt_colored_str = salt_str;
+            }
+            $('#total_salt').append(salt_colored_str);
           }  // readEatDB
           // datastore.recordsChanged.addListener(readEatDB);
           readEatDB();
