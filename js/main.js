@@ -325,6 +325,10 @@ $(function() {
             $('#food_history').text('');
             var total_energy = 0;
             var total_salt = 0;
+            var total_p = 0;
+            var total_f = 0;
+            var total_c = 0;
+
             var history_date = createHistoryDate();
             var hyear = history_date.getFullYear();
             var hmonth = history_date.getMonth();
@@ -352,6 +356,8 @@ $(function() {
                            '<td>' + food_item.name + '</td>');
                          $('#food_history').append(
                            '<td>' + food_item.energy + '</td>');
+
+                         // salt
                          var sod = new Number(food_item.sodium);
                          if (!isNaN(sod)) {
                            var salt = sod * 2.54 / 1000.0;
@@ -359,6 +365,39 @@ $(function() {
                              '<td>' + String(salt).substr(0, 5) + '</td>');
                            total_salt += salt;
                          }
+
+                         // PFC
+                         var ep = 0;
+                         var protein = new Number(food_item.protein);
+                         if (!isNaN(protein)) {
+                           ep = (protein * 4);
+                           total_p += ep;
+                         }
+                         var ef = 0;
+                         var fat = new Number(food_item.lipid);
+                         if (!isNaN(fat)) {
+                           ef = (fat * 9);
+                           total_f += ef;
+                         }
+                         var ec = 0;
+                         var carbo = new Number(food_item.carbohydrate);
+                         if (!isNaN(carbo)) {
+                           ec = (carbo * 4);
+                           total_c += ec;
+                         }
+                         var en = new Number(food_item.energy);
+                         if(!isNaN(en)) {
+                          $('#food_history').append(
+                            '<td>' +
+                              String(ep / en * 100).substr(0, 4) + ' / ' +
+                              String(ef / en * 100).substr(0, 4) + ' / ' +
+                              String(ec / en * 100).substr(0, 4) +
+                              '</td>');
+                         } else {
+                           $('#food_history').append(
+                             '<td>' + 'no data' + '</td>');
+                         }
+
                          $('#food_history').append(
                            '<td><input type="checkbox" value="' +
                              v.id + '" name="check_delete"></td>');
@@ -383,6 +422,15 @@ $(function() {
               salt_colored_str = salt_str;
             }
             $('#total_salt').append(salt_colored_str);
+
+            if (total_energy > 0.0) {
+              var pfc_str =
+                String(total_p / total_energy * 100).substr(0, 4) + ' / ' +
+                String(total_f / total_energy * 100).substr(0, 4) + ' / ' +
+                String(total_c / total_energy * 100).substr(0, 4);
+              $('#total_pfc').text(pfc_str);
+            }
+
           }  // readEatDB
           // datastore.recordsChanged.addListener(readEatDB);
           readEatDB();
