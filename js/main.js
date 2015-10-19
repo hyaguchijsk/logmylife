@@ -429,6 +429,8 @@ $(function() {
                 String(total_f / total_energy * 100).substr(0, 4) + ' / ' +
                 String(total_c / total_energy * 100).substr(0, 4);
               $('#total_pfc').text(pfc_str);
+            } else {
+              $('#total_pfc').text('-/-/-');
             }
 
           }  // readEatDB
